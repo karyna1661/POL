@@ -113,9 +113,9 @@ export default function StreamBlog() {
 
   return (
     <div className="min-h-screen bg-white text-black" style={{ fontFamily: 'Courier New, monospace' }}>
-      <div className="max-w-5xl mx-auto p-8">
-        <div className="mb-12 flex items-start justify-between">
-          <div className="text-sm leading-relaxed">
+      <div className="max-w-5xl mx-auto p-4 sm:p-8">
+        <div className="mb-8 sm:mb-12 flex items-start justify-between">
+          <div className="text-xs sm:text-sm leading-relaxed">
             <div className="mb-1">{formatTimestamp(new Date().toISOString())}</div>
           </div>
           <div className="flex gap-3 items-center">
@@ -140,14 +140,14 @@ export default function StreamBlog() {
         </div>
 
         {showAuth && !isAuthor && (
-          <div className="mb-12 border border-gray-300 p-6">
-            <div className="text-sm mb-4">Enter password to write:</div>
+          <div className="mb-8 sm:mb-12 border border-gray-300 p-4 sm:p-6">
+            <div className="text-xs sm:text-sm mb-4">Enter password to write:</div>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="password"
-              className="w-full bg-transparent outline-none border-b border-gray-300 pb-2 mb-4 text-sm"
+              className="w-full bg-transparent outline-none border-b border-gray-300 pb-2 mb-4 text-xs sm:text-sm"
               style={{ fontFamily: 'Courier New, monospace' }}
               autoFocus
               onKeyDown={(e) => {
@@ -156,7 +156,7 @@ export default function StreamBlog() {
                 }
               }}
             />
-            <div className="flex gap-3 text-sm">
+            <div className="flex gap-3 text-xs sm:text-sm">
               <button
                 onClick={handleAuth}
                 className="px-4 py-1 bg-black text-white hover:bg-gray-800 transition-colors"
@@ -177,13 +177,13 @@ export default function StreamBlog() {
         )}
 
         {isAdding && isAuthor && (
-          <div className="mb-12 flex justify-center">
-            <div className="w-full max-w-2xl border border-gray-300 p-6">
+          <div className="mb-8 sm:mb-12 flex justify-center">
+            <div className="w-full max-w-2xl border border-gray-300 p-4 sm:p-6">
               <textarea
                 value={newEntry}
                 onChange={(e) => setNewEntry(e.target.value)}
                 placeholder="write your thought..."
-                className="w-full bg-transparent outline-none resize-none text-sm mb-4"
+                className="w-full bg-transparent outline-none resize-none text-xs sm:text-sm mb-4"
                 style={{ fontFamily: 'Courier New, monospace' }}
                 rows={3}
                 autoFocus
@@ -193,7 +193,7 @@ export default function StreamBlog() {
                   }
                 }}
               />
-              <div className="flex gap-3 text-sm">
+              <div className="flex gap-3 text-xs sm:text-sm">
                 <button
                   onClick={addEntry}
                   className="px-4 py-1 bg-black text-white hover:bg-gray-800 transition-colors"
@@ -216,7 +216,7 @@ export default function StreamBlog() {
 
         <div className="space-y-0">
           {entries.length === 0 ? (
-            <div className="text-gray-500 text-sm py-20 text-center">
+            <div className="text-gray-500 text-xs sm:text-sm py-20 text-center">
               no entries yet
             </div>
           ) : (
@@ -225,7 +225,29 @@ export default function StreamBlog() {
                 key={entry.id}
                 className="group hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-start text-sm leading-relaxed py-1">
+                {/* Mobile Layout */}
+                <div className="sm:hidden py-3">
+                  <div className="text-xs text-gray-500 mb-2">
+                    {formatTimestamp(entry.timestamp)}
+                  </div>
+                  <div className="text-sm font-bold text-center mb-2 whitespace-pre-wrap">
+                    {entry.text}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">• {entry.number}</span>
+                    {isAuthor && (
+                      <button
+                        onClick={() => deleteEntry(entry)}
+                        className="text-gray-400 hover:text-red-500 transition-all text-xs px-2 py-1"
+                      >
+                        delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Desktop Layout */}
+                <div className="hidden sm:flex items-start text-sm leading-relaxed py-1">
                   <div className="w-64 flex-shrink-0 pr-8 text-left">
                     {formatTimestamp(entry.timestamp)}
                   </div>
@@ -247,6 +269,7 @@ export default function StreamBlog() {
                     </button>
                   )}
                 </div>
+
                 {index < entries.length - 1 && (
                   <div className="border-b border-gray-200 my-1"></div>
                 )}
