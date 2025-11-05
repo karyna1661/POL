@@ -1,4 +1,6 @@
-import { kv } from '@vercel/kv';
+import Redis from 'ioredis';
+
+const redis = new Redis(process.env.KV_URL || process.env.REDIS_URL);
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -18,13 +20,14 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       // Get auth
-      const auth = await kv.get('author-auth');
+      const authStr = await redis.get('author-auth');
+      const auth = authStr ? JSON.parse(authStr) : null;
       res.status(200).json({ auth });
       
     } else if (req.method === 'POST') {
       // Set auth
       const { password } = req.body;
-      await kv.set('author-auth', { password });
+      await redis.set('author-auth', JSON.stringify({ password }));
       res.status(200).json({ success: true });
       
     } else {

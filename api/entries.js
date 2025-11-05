@@ -1,4 +1,6 @@
-import { kv } from '@vercel/kv';
+import Redis from 'ioredis';
+
+const redis = new Redis(process.env.KV_URL || process.env.REDIS_URL);
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -18,12 +20,12 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       // Get all entries
-      const keys = await kv.keys('entry:*');
+      const keys = await redis.keys('entry:*');
       const entries = [];
       
       for (const key of keys) {
-        const entry = await kv.get(key);
-        if (entry) entries.push(entry);
+        const entryStr = await redis.get(key);
+        if (entryStr) entries.push(JSON.parse(entryStr));
       }
       
       entries.sort((a, b) => b.number - a.number);
@@ -32,13 +34,13 @@ export default async function handler(req, res) {
     } else if (req.method === 'POST') {
       // Create new entry
       const { entry } = req.body;
-      await kv.set(`entry:${entry.id}`, entry);
+      await redis.set(`entry:${entry.id}`, JSON.stringify(entry));
       res.status(201).json({ success: true, entry });
       
     } else if (req.method === 'DELETE') {
       // Delete entry
       const { id } = req.body;
-      await kv.del(`entry:${id}`);
+      await redis.del(`entry:${id}`);
       res.status(200).json({ success: true });
       
     } else {
