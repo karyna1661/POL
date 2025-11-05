@@ -10,8 +10,15 @@ export default function StreamBlog() {
   const [isAuthor, setIsAuthor] = useState(false);
   const [password, setPassword] = useState('');
   const [showAuth, setShowAuth] = useState(false);
+  const [isPWA, setIsPWA] = useState(false);
 
   useEffect(() => {
+    // Check if running as PWA
+    const isPWAMode = window.matchMedia('(display-mode: standalone)').matches || 
+                      window.navigator.standalone || 
+                      document.referrer.includes('android-app://');
+    setIsPWA(isPWAMode);
+    
     loadEntries();
     checkAuth();
   }, []);
@@ -106,6 +113,74 @@ export default function StreamBlog() {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-gray-400 text-sm" style={{ fontFamily: 'Courier New, monospace' }}>
           Loading, please wait one moment...
+        </div>
+      </div>
+    );
+  }
+
+  // PWA Quick Entry Mode
+  if (isPWA) {
+    return (
+      <div className="min-h-screen bg-white text-black flex items-center justify-center p-4" style={{ fontFamily: 'Courier New, monospace' }}>
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-xl font-bold mb-2">Hand Of Gold</h1>
+            <p className="text-xs text-gray-500">Quick Entry</p>
+          </div>
+
+          {!isAuthor ? (
+            <div className="border border-gray-300 p-6">
+              <div className="text-sm mb-4">Enter password:</div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="password"
+                className="w-full bg-transparent outline-none border-b border-gray-300 pb-2 mb-4 text-sm"
+                style={{ fontFamily: 'Courier New, monospace' }}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAuth();
+                  }
+                }}
+              />
+              <button
+                onClick={handleAuth}
+                className="w-full px-4 py-2 bg-black text-white hover:bg-gray-800 transition-colors text-sm"
+              >
+                enter
+              </button>
+            </div>
+          ) : (
+            <div className="border border-gray-300 p-6">
+              <textarea
+                value={newEntry}
+                onChange={(e) => setNewEntry(e.target.value)}
+                placeholder="write your thought..."
+                className="w-full bg-transparent outline-none resize-none text-sm mb-4 min-h-32"
+                style={{ fontFamily: 'Courier New, monospace' }}
+                autoFocus
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={async () => {
+                    await addEntry();
+                    alert('Entry saved!');
+                  }}
+                  className="flex-1 px-4 py-2 bg-black text-white hover:bg-gray-800 transition-colors text-sm"
+                >
+                  save
+                </button>
+                <button
+                  onClick={() => setNewEntry('')}
+                  className="px-4 py-2 text-gray-600 hover:text-black transition-colors text-sm"
+                >
+                  clear
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
