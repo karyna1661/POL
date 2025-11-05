@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Lock } from 'lucide-react';
+import { api } from './api';
 
 export default function StreamBlog() {
   const [entries, setEntries] = useState([]);
@@ -17,11 +18,10 @@ export default function StreamBlog() {
 
   const checkAuth = async () => {
     try {
-      const auth = await window.storage.get('author-auth');
+      const auth = await api.getAuth();
       if (auth) {
-        const authData = JSON.parse(auth.value);
         const sessionAuth = sessionStorage.getItem('stream-auth');
-        if (sessionAuth === authData.password) {
+        if (sessionAuth === auth.password) {
           setIsAuthor(true);
         }
       }
@@ -32,16 +32,15 @@ export default function StreamBlog() {
 
   const handleAuth = async () => {
     try {
-      const auth = await window.storage.get('author-auth');
+      const auth = await api.getAuth();
       if (!auth) {
-        await window.storage.set('author-auth', JSON.stringify({ password }));
+        await api.setAuth(password);
         sessionStorage.setItem('stream-auth', password);
         setIsAuthor(true);
         setShowAuth(false);
         setPassword('');
       } else {
-        const authData = JSON.parse(auth.value);
-        if (authData.password === password) {
+        if (auth.password === password) {
           sessionStorage.setItem('stream-auth', password);
           setIsAuthor(true);
           setShowAuth(false);
@@ -57,22 +56,8 @@ export default function StreamBlog() {
 
   const loadEntries = async () => {
     try {
-      const result = await window.storage.list('entry:');
-      if (result && result.keys) {
-        const loadedEntries = await Promise.all(
-          result.keys.map(async (key) => {
-            try {
-              const data = await window.storage.get(key);
-              return data ? JSON.parse(data.value) : null;
-            } catch {
-              return null;
-            }
-          })
-        );
-        const validEntries = loadedEntries.filter(e => e !== null);
-        validEntries.sort((a, b) => b.number - a.number);
-        setEntries(validEntries);
-      }
+      const loadedEntries = await api.getEntries();
+      setEntries(loadedEntries);
     } catch (error) {
       console.log('No entries yet');
     } finally {
@@ -93,7 +78,7 @@ export default function StreamBlog() {
     };
 
     try {
-      await window.storage.set(`entry:${entry.id}`, JSON.stringify(entry));
+      await api.createEntry(entry);
       setEntries([entry, ...entries]);
       setNewEntry('');
       setIsAdding(false);
@@ -104,7 +89,7 @@ export default function StreamBlog() {
 
   const deleteEntry = async (entry) => {
     try {
-      await window.storage.delete(`entry:${entry.id}`);
+      await api.deleteEntry(entry.id);
       setEntries(entries.filter(e => e.id !== entry.id));
     } catch (error) {
       console.error('Failed to delete entry:', error);
